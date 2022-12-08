@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.StringJoiner;
 import java.util.StringTokenizer;
 import org.checkerframework.checker.interning.qual.Interned;
+import org.checkerframework.checker.mustcall.qual.MustCallUnknown;
+import org.checkerframework.checker.mustcall.qual.PolyMustCall;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -187,6 +189,10 @@ public final class ReflectionPlume {
    * ClassLoader.defineClass is protected, so I subclass ClassLoader in order to call defineClass.
    */
   private static class PromiscuousLoader extends ClassLoader {
+
+    /** Create a new PromiscuousLoader. */
+    public PromiscuousLoader() {}
+
     /**
      * Converts the bytes in a file into an instance of class Class, and also resolves (links) the
      * class. Delegates the real work to defineClass.
@@ -200,11 +206,14 @@ public final class ReflectionPlume {
      */
     public Class<?> defineClassFromFile(@BinaryName String className, String pathname)
         throws FileNotFoundException, IOException {
-      FileInputStream fi = new FileInputStream(pathname);
-      int numbytes = fi.available();
-      byte[] classBytes = new byte[numbytes];
-      int bytesRead = fi.read(classBytes);
-      fi.close();
+      int numbytes;
+      byte[] classBytes;
+      int bytesRead;
+      try (FileInputStream fi = new FileInputStream(pathname)) {
+        numbytes = fi.available();
+        classBytes = new byte[numbytes];
+        bytesRead = fi.read(classBytes);
+      }
       if (bytesRead < numbytes) {
         throw new Error(
             String.format(
@@ -514,7 +523,7 @@ public final class ReflectionPlume {
    *     null
    */
   @SuppressWarnings("unchecked") // cast to Class<T>
-  public static <T> @Nullable Class<T> leastUpperBound(@PolyNull Object[] objects) {
+  public static <T> @Nullable Class<T> leastUpperBound(@PolyNull @PolyMustCall Object[] objects) {
     Class<T> result = null;
     for (Object obj : objects) {
       if (obj != null) {
@@ -533,7 +542,8 @@ public final class ReflectionPlume {
    *     null
    */
   @SuppressWarnings("unchecked") // cast to Class<T>
-  public static <T> @Nullable Class<T> leastUpperBound(List<? extends @Nullable Object> objects) {
+  public static <T> @Nullable Class<T> leastUpperBound(
+      List<? extends @MustCallUnknown @Nullable Object> objects) {
     Class<T> result = null;
     for (Object obj : objects) {
       if (obj != null) {
