@@ -373,22 +373,27 @@ public final class Signatures {
   /** Matches the "[][][]" at the end of a Java array type. */
   private static Pattern arrayBracketsPattern = Pattern.compile("(\\[\\])+$");
 
-  /** A representation of an array: A pair of class name and the number of array dimensions. */
+  /**
+   * A representation of an array: A pair of class name (a binary name or primitive) and the number
+   * of array dimensions.
+   */
   public static class ClassnameAndDimensions {
     /** The class name. It is a binary name or a primitive. */
-    public final @BinaryName String classname;
+    public final @FqBinaryName String classname;
     /** The number of array dimensions. */
     public final int dimensions;
+
     /**
      * Create a new ClassnameAndDimensions.
      *
      * @param classname the class name: a binary name or a primitive
      * @param dimensions the number of array dimensions
      */
-    public ClassnameAndDimensions(@BinaryName String classname, int dimensions) {
+    public ClassnameAndDimensions(@FqBinaryName String classname, int dimensions) {
       this.classname = classname;
       this.dimensions = dimensions;
     }
+
     /**
      * Constructs a new ClassnameAndDimensions by parsing a fully-qualified binary name.
      *
@@ -402,7 +407,7 @@ public final class Signatures {
           "signature:assignment" // classname is a @ClassGetName for a non-array; equivalently, a
       // binary name for a non-array
       )
-      @BinaryName String classname = m.replaceFirst("");
+      @FqBinaryName String classname = m.replaceFirst("");
       int dimensions = (typename.length() - classname.length()) / 2;
       return new ClassnameAndDimensions(classname, dimensions);
     }
