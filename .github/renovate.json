@@ -7,5 +7,6 @@
     "schedule:nonOfficeHours",
     ":disableDependencyDashboard"
   ],
+  "forkProcessing": "enabled"
   "timezone": "America/Los_Angeles"
 }
