@@ -1,9 +1,21 @@
 # Reflection-Util change log
 
-## 1.1.1 (2023-??-??)
+## 1.1.3 (2024-01-15)
+
+- New methods in class Signatures:
+   - methodDescriptorToReturnType
+   - splitJvmArglist
+   - splitJavaArglist
+
+## 1.1.2 (2023-12-08)
+
+- Produce Java 8 bytecodes (version 1.1.1 didn't work under Java 8).
+
+## 1.1.1 (2023-12-08)
 
 - Added method `Signatures.fieldDescriptorToFullyQualified()`.
 - Improved type qualifiers on some methods.
+- Tested under JDK 21.
 
 ## 1.1.0 (2023-05-23)
 
