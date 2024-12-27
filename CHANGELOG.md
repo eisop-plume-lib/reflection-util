@@ -1,5 +1,14 @@
 # Reflection-Util change log
 
+## 1.1.5 (??)
+
+- New method 'Signatures.internalFormToDotSeparatedIdentifiers'
+
+## 1.1.4 (2024-10-09)
+
+- New method `Signatures.classGetNameToBinaryName()`
+- Requires Java 11 (its .class files uses classfile version 55)
+
 ## 1.1.3 (2024-01-15)
 
 - New methods in class Signatures:

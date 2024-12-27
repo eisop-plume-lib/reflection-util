@@ -13,13 +13,13 @@ plugins {
   id 'java-library'
 
   // To create a fat jar build/libs/...-all.jar, run: ./gradlew shadowJar
-  id 'com.github.johnrengelman.shadow' version '8.1.1'
+  id 'com.gradleup.shadow' version '8.3.5'
 
   // Error Prone linter
   id('net.ltgt.errorprone') version '4.1.0'
 
   // Checker Framework pluggable type-checking
-  id 'org.checkerframework' version '0.6.45'
+  id 'org.checkerframework' version '0.6.47'
 }
 
 repositories {
@@ -28,16 +28,14 @@ repositories {
   maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
 }
 
-ext.errorproneVersion = '2.31.0'
-
 ext {
+  errorproneVersion = '2.36.0'
   isJava11orHigher = JavaVersion.current() >= JavaVersion.VERSION_11
+  isJava17orHigher = JavaVersion.current() >= JavaVersion.VERSION_17
+  isJava21orHigher = JavaVersion.current() >= JavaVersion.VERSION_21
 }
 
 dependencies {
-  compileOnly "com.google.errorprone:error_prone_annotations:${errorproneVersion}"
-  errorprone("com.google.errorprone:error_prone_core:${errorproneVersion}")
-
   testImplementation 'org.junit.jupiter:junit-jupiter-api:5.11.4'
   testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
 }
@@ -84,22 +82,27 @@ if (isJava11orHigher) {
   }
 }
 
-/// Error Prone linter
+// Error Prone linter
+
+dependencies {
+  compileOnly "com.google.errorprone:error_prone_annotations:${errorproneVersion}"
+  errorprone("com.google.errorprone:error_prone_core:${errorproneVersion}")
+}
 
 tasks.withType(JavaCompile).configureEach {
   // "-processing" avoids javac warning "No processor claimed any of these annotations".
   // "-Xlint:-options" is because of JDK 21 warning "source value 8 is obsolete..."
   options.compilerArgs << '-Xlint:all,-processing,-options' << '-Werror'
-  options.errorprone.enabled = isJava11orHigher
   options.errorprone {
     disable('ExtendsObject')  // Incorrect when using the Checker Framework
     disable('ReferenceEquality') // Use Interning Checker instead.
     // disable('StringSplitter') // Obscure case isn't likely.
     disable('AnnotateFormatMethod') // Error Prone doesn't know about Checker Framework @FormatMethod
   }
+  options.errorprone.enabled = isJava17orHigher
 }
 
-/// Checker Framework pluggable type-checking
+// Checker Framework pluggable type-checking
 
 apply plugin: 'org.checkerframework'
 
@@ -158,7 +161,7 @@ checkerFramework {
   ]
 }
 
-/// Javadoc
+// Javadoc
 
 // Turn Javadoc warnings into errors.
 javadoc {
@@ -214,7 +217,7 @@ task requireJavadoc(type: JavaExec) {
 check.dependsOn requireJavadoc
 javadocWeb.dependsOn requireJavadoc
 
-/// Emacs support
+// Emacs support
 
 /* Make Emacs TAGS table */
 task tags(type: Exec) {

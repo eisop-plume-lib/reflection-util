@@ -18,9 +18,9 @@ import org.junit.jupiter.api.Test;
 /** Test code for the Signatures class. */
 public final class TestSignatures {
 
-  ///////////////////////////////////////////////////////////////////////////
-  /// Accessing parts of types
-  ///
+  // //////////////////////////////////////////////////////////////////////
+  // Accessing parts of types
+  //
 
   /**
    * Returns the element type for the given type name, which results from removing all the array
@@ -58,9 +58,9 @@ public final class TestSignatures {
     assertEquals("Quux$22", Signatures.classfilenameToBaseName("Quux$22.class"));
   }
 
-  ///////////////////////////////////////////////////////////////////////////
-  /// String concatenations
-  ///
+  // //////////////////////////////////////////////////////////////////////
+  // String concatenations
+  //
 
   /*
    * Given a package name and a class name, combine them to form a qualified class name.
@@ -71,9 +71,9 @@ public final class TestSignatures {
     assertEquals("a.b.c.Foo", Signatures.addPackage("a.b.c", "Foo"));
   }
 
-  ///////////////////////////////////////////////////////////////////////////
-  /// Type tests
-  ///
+  // //////////////////////////////////////////////////////////////////////
+  // Type tests
+  //
 
   /**
    * Returns true if the argument has the format of a BinaryName. The type it refers to might or
@@ -172,9 +172,9 @@ public final class TestSignatures {
     assertTrue(Signatures.isIdentifier("Class$Inner"));
   }
 
-  ///////////////////////////////////////////////////////////////////////////
-  /// Type conversions
-  ///
+  // //////////////////////////////////////////////////////////////////////
+  // Type conversions
+  //
 
   private void assertParseFqBinaryName(
       @FqBinaryName String typename, String classname, int dimensions) {
@@ -202,7 +202,15 @@ public final class TestSignatures {
 
   @Test
   public void testConversions() {
-    // Table from Checker Framework manual
+    // Table from Checker Framework manual.  Order of arguments:
+    // @FqBinaryName String fqbn,
+    // @Nullable @FullyQualifiedName String fqn,
+    // @ClassGetName String cgn,
+    // @FieldDescriptor String fd,
+    // @Nullable @BinaryName String bn,
+    // @Nullable @InternalForm String iform,
+    // @Nullable @ClassGetSimpleName String cgsn) {
+
     checkTypeConversions("int", "int", "int", "I", null, null, "int");
     checkTypeConversions("int[][]", "int[][]", "[[I", "[[I", null, null, "int[][]");
     checkTypeConversions(
@@ -280,6 +288,7 @@ public final class TestSignatures {
     assertEquals(cgn, Signatures.fieldDescriptorToClassGetName(fd));
     if (bn != null) {
       assertEquals(bn, Signatures.fieldDescriptorToBinaryName(fd));
+      assertEquals(bn, Signatures.classGetNameToBinaryName(cgn));
     }
     if (fqn != null) {
       assertEquals(fqn, Signatures.fieldDescriptorToFullyQualified(fd));
@@ -298,9 +307,9 @@ public final class TestSignatures {
     }
   }
 
-  ///////////////////////////////////////////////////////////////////////////
-  /// Method signatures, which combine multiple types
-  ///
+  // //////////////////////////////////////////////////////////////////////
+  // Method signatures, which combine multiple types
+  //
 
   @Test
   public void testSignatureSplitting() {
