@@ -645,6 +645,7 @@ public final class Signatures {
    * @param internalForm a class name in internal form
    * @return the class name as dot-separated identifiers
    */
+  @SuppressWarnings("signature:return.type.incompatible") // TODO with checker update
   public static @DotSeparatedIdentifiers String internalFormToDotSeparatedIdentifiers(
       @InternalForm String internalForm) {
     return internalForm.replace('/', '.');
