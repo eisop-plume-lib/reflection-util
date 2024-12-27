@@ -47,9 +47,9 @@ public final class Signatures {
     throw new Error("Do not instantiate");
   }
 
-  ///////////////////////////////////////////////////////////////////////////
-  /// Accessing parts of types
-  ///
+  // ///////////////////////////////////////////////////////////////////////////
+  // Accessing parts of types
+  //
 
   /**
    * Returns the element type for the given type name, which results from removing all the array
@@ -105,9 +105,9 @@ public final class Signatures {
     return classfilename.substring(start, end);
   }
 
-  ///////////////////////////////////////////////////////////////////////////
-  /// String concatenations
-  ///
+  // ///////////////////////////////////////////////////////////////////////////
+  // String concatenations
+  //
 
   // These are not yet special-cased by the typechecker, so provide methods so clients don't have to
   // suppress warnings.
@@ -136,9 +136,9 @@ public final class Signatures {
     }
   }
 
-  ///////////////////////////////////////////////////////////////////////////
-  /// Type tests (predicates)
-  ///
+  // ///////////////////////////////////////////////////////////////////////////
+  // Type tests (predicates)
+  //
 
   /**
    * Returns true if the argument has the format of an ArrayWithoutPackage. The type it refers to
@@ -368,9 +368,9 @@ public final class Signatures {
     return SignatureRegexes.PrimitiveTypePattern.matcher(s).matches();
   }
 
-  ///////////////////////////////////////////////////////////////////////////
-  /// Type conversions
-  ///
+  // ///////////////////////////////////////////////////////////////////////////
+  // Type conversions
+  //
 
   /** Matches the "[][][]" at the end of a Java array type. */
   private static Pattern arrayBracketsPattern = Pattern.compile("(\\[\\])+$");
@@ -475,7 +475,8 @@ public final class Signatures {
    * Convert from a BinaryName to the format of {@link Class#getName()}.
    *
    * <p>There are no binary names for primitives or array types. Nonetheless, this method works for
-   * them. It converts "java.lang.Object[]" to "[Ljava.lang.Object;" or "int" to "int".
+   * them. It converts "java.lang.Object[]" to "[Ljava.lang.Object;", and it converts "int" to
+   * "int".
    *
    * @param bn the binary name to convert
    * @return the class name, in Class.getName format
@@ -559,13 +560,50 @@ public final class Signatures {
     } else {
       result = fieldDescriptorToPrimitive.get(classname);
       if (result == null) {
-        throw new Error("Malformed base class: " + classname);
+        throw new Error(
+            "Malformed field descriptor should be \"L...;\" or a primitive: " + classname);
       }
     }
     for (int i = 0; i < dimensions; i++) {
       result += "[]";
     }
     return result.replace('/', '.');
+  }
+
+  /**
+   * Convert a name in Class.getName format to a binary name. For example, convert
+   * "[Ljava/util/Map$Entry;" to "java.lang.Map$Entry[]".
+   *
+   * @param typename a name in Class.getName format
+   * @return the corresponding binary name
+   */
+  @SuppressWarnings("signature") // conversion routine
+  public static @BinaryName String classGetNameToBinaryName(@ClassGetName String typename) {
+    if (typename.equals("")) {
+      throw new Error("Empty string passed to fieldDescriptorToBinaryName");
+    }
+    Matcher m = fdArrayBracketsPattern.matcher(typename);
+    String classname = m.replaceFirst("");
+    int dimensions = typename.length() - classname.length();
+    String result;
+    if (dimensions == 0) {
+      return classname;
+    } else {
+      if (classname.startsWith("L") && classname.endsWith(";")) {
+        result = classname.substring(1, classname.length() - 1);
+      } else {
+        result = fieldDescriptorToPrimitive.get(classname);
+        if (result == null) {
+          throw new Error(
+              "Malformed Class.getName array base type should be \"L...;\" or a primitive: "
+                  + classname);
+        }
+      }
+      for (int i = 0; i < dimensions; i++) {
+        result += "[]";
+      }
+      return result;
+    }
   }
 
   /**
@@ -592,17 +630,29 @@ public final class Signatures {
   }
 
   /**
-   * Given a class name in internal form, return it in as a binary name.
+   * Given a class name in internal form, return it as a binary name.
    *
    * @param internalForm a class name in internal form
-   * @return the class name sa a binary name
+   * @return the class name as a binary name
    */
   public static @BinaryName String internalFormToBinaryName(@InternalForm String internalForm) {
     return internalForm.replace('/', '.');
   }
 
   /**
-   * Given a class name in internal form, return it in as a fully-qualified name.
+   * Given a class name in internal form, return it as dot-separated identifiers.
+   *
+   * @param internalForm a class name in internal form
+   * @return the class name as dot-separated identifiers
+   */
+  @SuppressWarnings("signature:return.type.incompatible") // TODO with checker update
+  public static @DotSeparatedIdentifiers String internalFormToDotSeparatedIdentifiers(
+      @InternalForm String internalForm) {
+    return internalForm.replace('/', '.');
+  }
+
+  /**
+   * Given a class name in internal form, return it as a fully-qualified name.
    *
    * @param internalForm a type in internal form
    * @return a fully-qualified name
@@ -612,9 +662,9 @@ public final class Signatures {
     return binaryNameToFullyQualified(internalFormToBinaryName(internalForm));
   }
 
-  ///////////////////////////////////////////////////////////////////////////
-  /// Method signatures, which combine multiple types
-  ///
+  // ///////////////////////////////////////////////////////////////////////////
+  // Method signatures, which combine multiple types
+  //
 
   /** The pattern that separates arguments in a Java argument string. */
   private static Pattern commaSeparator = Pattern.compile(" *, *");
