@@ -19,7 +19,7 @@ plugins {
   id('net.ltgt.errorprone') version '4.1.0'
 
   // Checker Framework pluggable type-checking
-  id 'org.checkerframework' version '0.6.47'
+  id 'org.checkerframework' version '0.6.45'
 }
 
 repositories {
@@ -108,7 +108,7 @@ apply plugin: 'org.checkerframework'
 
 if (true) {
   // Use the released version of the EISOP Checker Framework.
-  ext.checkerFrameworkVersion = '3.42.0-eisop3'
+  ext.checkerFrameworkVersion = '3.42.0-eisop5'
 } else {
   // To use a snapshot version of the EISOP Checker Framework.
   // TODO: Change the above test to false to use a snapshot.
