@@ -1,22 +1,15 @@
-buildscript {
-  dependencies {
-    if (JavaVersion.current() >= JavaVersion.VERSION_11) {
-      // Code formatting; defines targets "spotlessApply" and "spotlessCheck".
-      // https://github.com/diffplug/spotless/tags ; see tags starting "gradle/"
-      // Only works on JDK 11+.
-      classpath 'com.diffplug.spotless:spotless-plugin-gradle:7.0.4'
-    }
-  }
-}
-
 plugins {
   id 'java-library'
 
   // To create a fat jar build/libs/...-all.jar, run: ./gradlew shadowJar
   id 'com.gradleup.shadow' version '8.3.7'
 
+  // Code formatting; defines targets "spotlessApply" and "spotlessCheck"
+  // Requires JDK 11 or higher; the plugin crashes under JDK 8.
+  id 'com.diffplug.spotless' version '7.0.4'
+
   // Error Prone linter
-  id 'net.ltgt.errorprone' version '4.2.0'
+  id('net.ltgt.errorprone') version '4.2.0'
 
   // Checker Framework pluggable type-checking
   id 'org.checkerframework' version '0.6.55'
@@ -36,9 +29,8 @@ ext {
 }
 
 dependencies {
-  testImplementation 'org.junit.jupiter:junit-jupiter-api:5.13.1'
-  testImplementation 'org.junit.platform:junit-platform-launcher:1.13.1'
-  testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+  testImplementation("org.junit.jupiter:junit-jupiter:5.13.1")
+  testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 // To upload to Maven Central, see instructions in the file.
@@ -206,7 +198,7 @@ configurations {
   requireJavadoc
 }
 dependencies {
-  requireJavadoc 'org.plumelib:require-javadoc:1.0.9'
+  requireJavadoc 'org.plumelib:require-javadoc:2.0.0'
 }
 task requireJavadoc(type: JavaExec) {
   group = 'Documentation'
@@ -215,6 +207,16 @@ task requireJavadoc(type: JavaExec) {
   mainClass = 'org.plumelib.javadoc.RequireJavadoc'
   classpath = configurations.requireJavadoc
   args 'src/main/java'
+  jvmArgs += [
+    '--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED',
+    '--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED',
+    '--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED',
+    '--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED',
+    '--add-opens=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED',
+    '--add-opens=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED',
+    '--add-opens=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED',
+    '--add-opens=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED',
+  ]
 }
 check.dependsOn requireJavadoc
 javadocWeb.dependsOn requireJavadoc
