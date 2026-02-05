@@ -188,7 +188,7 @@ public final class ReflectionPlume {
   private static class PromiscuousLoader extends ClassLoader {
 
     /** Create a new PromiscuousLoader. */
-    public PromiscuousLoader() {}
+    PromiscuousLoader() {}
 
     /**
      * Converts the bytes in a file into an instance of class Class, and also resolves (links) the
@@ -201,7 +201,7 @@ public final class ReflectionPlume {
      * @throws FileNotFoundException if the file does not exist
      * @throws IOException if there is trouble reading the file
      */
-    public Class<?> defineClassFromFile(@BinaryName String className, String pathname)
+    Class<?> defineClassFromFile(@BinaryName String className, String pathname)
         throws FileNotFoundException, IOException {
       int numbytes;
       byte[] classBytes;
