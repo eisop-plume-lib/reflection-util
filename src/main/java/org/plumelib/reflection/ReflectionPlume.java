@@ -4,11 +4,13 @@
 package org.plumelib.reflection;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -38,8 +40,8 @@ public final class ReflectionPlume {
   //
 
   /**
-   * Return true iff sub is a subtype of sup. If sub == sup, then sub is considered a subtype of sub
-   * and this method returns true.
+   * Returns true iff sub is a subtype of sup. If sub == sup, then sub is considered a subtype of
+   * sub and this method returns true.
    *
    * @param sub class to test for being a subtype
    * @param sup class to test for being a supertype
@@ -206,7 +208,7 @@ public final class ReflectionPlume {
       int numbytes;
       byte[] classBytes;
       int bytesRead;
-      try (FileInputStream fi = new FileInputStream(pathname)) {
+      try (InputStream fi = Files.newInputStream(Path.of(pathname))) {
         numbytes = fi.available();
         classBytes = new byte[numbytes];
         bytesRead = fi.read(classBytes);
@@ -309,7 +311,7 @@ public final class ReflectionPlume {
    * @throws NoSuchMethodException if the method is not found
    */
   public static Method methodForName(String method)
-      throws ClassNotFoundException, NoSuchMethodException, SecurityException {
+      throws ClassNotFoundException, NoSuchMethodException {
 
     int oparenpos = method.indexOf('(');
     int dotpos = method.lastIndexOf('.', oparenpos);
@@ -374,7 +376,7 @@ public final class ReflectionPlume {
    */
   public static Method methodForName(
       @BinaryName String classname, String methodname, Class<?>[] params)
-      throws ClassNotFoundException, NoSuchMethodException, SecurityException {
+      throws ClassNotFoundException, NoSuchMethodException {
 
     Class<?> c = Class.forName(classname);
     Method m = c.getDeclaredMethod(methodname, params);
@@ -389,9 +391,9 @@ public final class ReflectionPlume {
   // java/Translation/src/graph/tests/Reflect.java (but handle returning a
   // value).
 
-  // TODO: make this restore the access to its original value, such as private?
   /**
-   * Sets the given field, which may be final and/or private. Leaves the field accessible.
+   * Sets the given field, which may be final and/or private. Restores the field's original
+   * accessibility.
    *
    * @param o object in which to set the field; null iff the field is static
    * @param fieldName name of field to set
@@ -405,8 +407,14 @@ public final class ReflectionPlume {
       // System.out.printf ("Setting field %s in %s%n", fieldName, c);
       try {
         Field f = c.getDeclaredField(fieldName);
-        f.setAccessible(true);
-        f.set(o, value);
+        @SuppressWarnings("deprecation") // No non-deprecated alternative to query accessible flag.
+        boolean originalAccessible = f.isAccessible();
+        try {
+          f.setAccessible(true);
+          f.set(o, value);
+        } finally {
+          f.setAccessible(originalAccessible);
+        }
         return;
       } catch (NoSuchFieldException e) {
         if (c.getSuperclass() == Object.class) { // Class is interned
@@ -421,13 +429,12 @@ public final class ReflectionPlume {
     throw new NoSuchFieldException(fieldName);
   }
 
-  // TODO: make this restore the access to its original value, such as private?
   /**
-   * Reads the given field, which may be private. Leaves the field accessible. Use with care!
+   * Reads the given field, which may be private. Restores the field's original accessibility.
    *
-   * @param o object in which to set the field
-   * @param fieldName name of field to set
-   * @return new value of field
+   * @param o object in which to get the field
+   * @param fieldName name of field to get
+   * @return value of field
    * @throws NoSuchFieldException if the field does not exist in the object
    */
   public static @Nullable Object getPrivateField(Object o, String fieldName)
@@ -437,8 +444,14 @@ public final class ReflectionPlume {
       // System.out.printf ("Setting field %s in %s%n", fieldName, c);
       try {
         Field f = c.getDeclaredField(fieldName);
-        f.setAccessible(true);
-        return f.get(o);
+        @SuppressWarnings("deprecation") // No non-deprecated alternative to query accessible flag.
+        boolean originalAccessible = f.isAccessible();
+        try {
+          f.setAccessible(true);
+          return f.get(o);
+        } finally {
+          f.setAccessible(originalAccessible);
+        }
       } catch (IllegalAccessException e) {
         throw new Error("This can't happen: " + e);
       } catch (NoSuchFieldException e) {

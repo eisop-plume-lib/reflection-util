@@ -99,7 +99,7 @@ public final class Signatures {
       throw new IllegalArgumentException("Bad class file name: " + classfilename);
     }
     @SuppressWarnings("index:assignment") // "/" is not the last character
-    @IndexFor("classfilename") int start = classfilename.lastIndexOf("/") + 1;
+    @IndexFor("classfilename") int start = classfilename.lastIndexOf('/') + 1;
     int end = classfilename.length() - 6;
     return classfilename.substring(start, end);
   }
@@ -532,8 +532,12 @@ public final class Signatures {
 
   // does not convert "V" to "void".  Should it?
   /**
-   * Convert a field descriptor to a binary name. For example, convert "[Ljava/util/Map$Entry;" to
-   * "java.lang.Map$Entry[]" or "I" to "int".
+   * Convert a field descriptor to a binary name. For example, convert "Ljava/util/Map$Entry;" to
+   * "java.util.Map$Entry".
+   *
+   * <p>Strictly speaking, there is no binary name for primitives and arrays. In those cases, the
+   * result is a "fully-qualified binary name" ({@code @}{@link FqBinaryName}). For example, this
+   * method converts "[Ljava/util/Map$Entry;" to "java.util.Map$Entry[]" and converts "I" to "int".
    *
    * @param typename a field descriptor (the name of a type in JVML format)
    * @return the corresponding binary name
@@ -564,7 +568,7 @@ public final class Signatures {
 
   /**
    * Convert a name in Class.getName format to a binary name. For example, convert
-   * "[Ljava/util/Map$Entry;" to "java.lang.Map$Entry[]".
+   * "[Ljava.util.Map$Entry;" to "java.util.Map$Entry[]".
    *
    * @param typename a name in Class.getName format
    * @return the corresponding binary name
@@ -572,7 +576,7 @@ public final class Signatures {
   @SuppressWarnings("signature") // conversion routine
   public static @BinaryName String classGetNameToBinaryName(@ClassGetName String typename) {
     if (typename.equals("")) {
-      throw new Error("Empty string passed to fieldDescriptorToBinaryName");
+      throw new Error("Empty string passed to classGetNameToBinaryName");
     }
     Matcher m = fdArrayBracketsPattern.matcher(typename);
     String classname = m.replaceFirst("");
@@ -629,6 +633,16 @@ public final class Signatures {
    */
   public static @BinaryName String internalFormToBinaryName(@InternalForm String internalForm) {
     return internalForm.replace('/', '.');
+  }
+
+  /**
+   * Given a class name in binary name form, return it in internal form.
+   *
+   * @param binaryName a class name in binary name form
+   * @return the class name in internal form
+   */
+  public static @InternalForm String binaryNameToInternalForm(@BinaryName String binaryName) {
+    return binaryName.replace('.', '/');
   }
 
   /**
@@ -783,7 +797,7 @@ public final class Signatures {
   public static @Nullable @FieldDescriptor String methodDescriptorToReturnType(
       @MethodDescriptor String methodDescriptor) {
     @SuppressWarnings("signature:assignment") // string manipulation
-    @FieldDescriptor String result = methodDescriptor.substring(methodDescriptor.indexOf(")") + 1);
+    @FieldDescriptor String result = methodDescriptor.substring(methodDescriptor.indexOf(')') + 1);
     return result.equals("V") ? null : result;
   }
 }
