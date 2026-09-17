@@ -10,7 +10,7 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
-import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -208,7 +208,7 @@ public final class ReflectionPlume {
       int numbytes;
       byte[] classBytes;
       int bytesRead;
-      try (InputStream fi = Files.newInputStream(Path.of(pathname))) {
+      try (InputStream fi = Files.newInputStream(Paths.get(pathname))) {
         numbytes = fi.available();
         classBytes = new byte[numbytes];
         bytesRead = fi.read(classBytes);
